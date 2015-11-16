@@ -15,7 +15,7 @@ public class PerceptronCoursework {
      * @throws java.lang.Exception
      */
     public static void main(String[] args) throws Exception {
-        String path = "../Datasets/banana/banana.arff";
+        String path = "../Datasets/test.arff";
         Instances training = ArffReader.read(path);
 
         LinearPerceptron perceptron = new LinearPerceptron();
