@@ -36,7 +36,7 @@ public class LinearPerceptron implements IPerceptron {
             weights.add(1.0);
         }
         
-        PerceptronTrainer.online(instances, this);
+        PerceptronTrainer.offline(instances, this);
     }
 
     @Override

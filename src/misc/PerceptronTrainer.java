@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package misc;
 
 import java.util.ArrayList;
@@ -18,7 +13,6 @@ public final class PerceptronTrainer {
     private PerceptronTrainer() {
     }
 
-    // take in a type of perceptron?
     public static void online(Instances training, IPerceptron perceptron) throws Exception {
         ArrayList<Double> weights = perceptron.getWeights();
 
@@ -29,7 +23,7 @@ public final class PerceptronTrainer {
                 double y = perceptron.classifyInstance(train);
 
                 // don't update weights if coprrectly classified as redundant
-                for (int i = 0; i <= numAttrs - 1; i++) {
+                for (int i = 0; i < numAttrs; i++) {
                     double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - y) * train.value(i);
 
                     weights.set(i, weights.get(i) + newWeight);
@@ -43,7 +37,32 @@ public final class PerceptronTrainer {
     }
 
     public static void offline(Instances training, IPerceptron perceptron) throws Exception {
+        ArrayList<Double> weights = perceptron.getWeights();
 
+        int numAttrs = training.numAttributes() - 1;
+        
+        do {
+            ArrayList<Double> deltaWeights = new ArrayList<>();
+            
+            for(int i = 0; i < numAttrs; i++) deltaWeights.add(0.0);
+            
+            for(Instance train: training) {
+                double y = perceptron.classifyInstance(train);
+                
+                for(int i = 0; i < numAttrs; i++) {
+                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - y) * train.value(i);
+                    
+                    deltaWeights.set(i, deltaWeights.get(i) + newWeight);
+                }
+                
+                for(int i = 0; i < numAttrs; i++) {                    
+                    weights.set(i, weights.get(i) + deltaWeights.get(i));
+                }
+            }
+            
+            break;
+            // do stopping condition
+        } while(true);
     }
 
     private static double getClassValue(Instance instance) {

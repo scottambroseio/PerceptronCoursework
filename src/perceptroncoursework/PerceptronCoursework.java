@@ -21,6 +21,8 @@ public class PerceptronCoursework {
         LinearPerceptron perceptron = new LinearPerceptron();
         
         perceptron.buildClassifier(training);
+        
+        System.out.println(perceptron.getWeights());
     }
 
 }
