@@ -20,7 +20,7 @@ public final class PerceptronTrainer {
 
         do {
             for (Instance train : training) {
-                double y = perceptron.classifyInstance(train);
+                double y = classifyInstance(train, weights);
 
                 // don't update weights if coprrectly classified as redundant
                 for (int i = 0; i < numAttrs; i++) {
@@ -30,7 +30,6 @@ public final class PerceptronTrainer {
                     perceptron.setWeights(weights);
                 }
             }
-
             break;
             // do stopping condition
         } while (true);
@@ -47,7 +46,7 @@ public final class PerceptronTrainer {
             for(int i = 0; i < numAttrs; i++) deltaWeights.add(0.0);
             
             for(Instance train: training) {
-                double y = perceptron.classifyInstance(train);
+                double y = classifyInstance(train, weights);
                 
                 for(int i = 0; i < numAttrs; i++) {
                     double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - y) * train.value(i);
@@ -63,6 +62,16 @@ public final class PerceptronTrainer {
             break;
             // do stopping condition
         } while(true);
+    }
+    
+    public static double classifyInstance(Instance instnc, ArrayList<Double> weights) {
+        double result = 0;
+
+        for (int index = instnc.numAttributes() - 2; index >= 0; index--) {
+            result += instnc.value(index) * weights.get(index);
+        }
+        
+        return result >= 0 ? 1 : -1;
     }
 
     private static double getClassValue(Instance instance) {

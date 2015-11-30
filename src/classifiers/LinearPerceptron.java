@@ -23,6 +23,7 @@ public class LinearPerceptron implements IPerceptron {
         this.weights = new ArrayList<>();
         this.bias = 1;
         this.learningRate = 1;
+
     }
 
     @Override
@@ -35,8 +36,8 @@ public class LinearPerceptron implements IPerceptron {
         for (int count = instances.numAttributes() - 1; count > 0; count--) {
             weights.add(1.0);
         }
-        
-        PerceptronTrainer.offline(instances, this);
+
+        PerceptronTrainer.online(instances, this);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class LinearPerceptron implements IPerceptron {
         for (int index = instnc.numAttributes() - 2; index >= 0; index--) {
             result += instnc.value(index) * weights.get(index);
         }
-        
+
         return result >= 0 ? 1 : -1;
     }
 
