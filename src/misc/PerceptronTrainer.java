@@ -27,7 +27,7 @@ public final class PerceptronTrainer {
                     double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - y) * train.value(i);
 
                     weights.set(i, weights.get(i) + newWeight);
-                    perceptron.setWeights(weights);
+                    //perceptron.setWeights(weights);
                 }
             }
             break;

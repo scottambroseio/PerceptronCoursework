@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import misc.AttributeValidator;
 import misc.IPerceptron;
 import misc.InvalidAttributesException;
+import misc.PerceptronClassifier;
 import misc.PerceptronTrainer;
 import weka.core.Capabilities;
 import weka.core.Instance;
@@ -17,7 +18,7 @@ public class LinearPerceptron implements IPerceptron {
 
     private double bias;
     private double learningRate;
-    private ArrayList<Double> weights;
+    private final ArrayList<Double> weights;
 
     public LinearPerceptron() {
         this.weights = new ArrayList<>();
@@ -42,13 +43,7 @@ public class LinearPerceptron implements IPerceptron {
 
     @Override
     public double classifyInstance(Instance instnc) throws Exception {
-        double result = 0;
-
-        for (int index = instnc.numAttributes() - 2; index >= 0; index--) {
-            result += instnc.value(index) * weights.get(index);
-        }
-
-        return result >= 0 ? 1 : -1;
+        return PerceptronClassifier.classifyInstance(instnc, weights);
     }
 
     @Override
@@ -84,10 +79,5 @@ public class LinearPerceptron implements IPerceptron {
     @Override
     public void setLearningRate(double learningRate) {
         this.learningRate = learningRate;
-    }
-
-    @Override
-    public void setWeights(ArrayList<Double> weights) {
-        this.weights = weights;
     }
 }

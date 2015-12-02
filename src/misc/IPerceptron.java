@@ -20,8 +20,6 @@ public interface IPerceptron extends Classifier {
 
     public ArrayList<Double> getWeights();
 
-    public void setWeights(ArrayList<Double> weights);
-
     public double getLearningRate();
 
     public void setLearningRate(double learningRate);
