@@ -56,6 +56,7 @@ public class LinearPerceptron implements IPerceptron {
         PerceptronTrainer.online(instances, this);
     }
     
+    @Override
     public void setIndexes(int[] indexes) {
         this.indexes = indexes;
     }
