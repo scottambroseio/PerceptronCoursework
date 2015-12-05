@@ -98,4 +98,9 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     public void setLearningRate(double learningRate) {
         this.learningRate = learningRate;
     }
+
+    @Override
+    public void setIndexes(int[] indexes) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

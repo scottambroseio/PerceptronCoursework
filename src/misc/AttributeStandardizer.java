@@ -11,7 +11,7 @@ import weka.core.Instances;
 
 /**
  *
- * @author Scott
+ * @author 6523617
  */
 public class AttributeStandardizer {
 

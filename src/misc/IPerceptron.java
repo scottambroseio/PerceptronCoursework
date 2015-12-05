@@ -10,7 +10,7 @@ import weka.classifiers.Classifier;
 
 /**
  *
- * @author Scott
+ * @author 6523617
  */
 public interface IPerceptron extends Classifier {
 
@@ -23,4 +23,6 @@ public interface IPerceptron extends Classifier {
     public double getLearningRate();
 
     public void setLearningRate(double learningRate);
+    
+    public void setIndexes(int[] indexes);
 }

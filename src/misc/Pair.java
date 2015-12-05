@@ -7,12 +7,14 @@ package misc;
 
 /**
  *
- * @author Scott
+ * @author 6523617
+ * @param <A>
+ * @param <B>
  */
 public class Pair<A, B> {
 
-    private A first;
-    private B last;
+    private final A first;
+    private final B last;
 
     public Pair(A first, B last) {
         this.first = first;

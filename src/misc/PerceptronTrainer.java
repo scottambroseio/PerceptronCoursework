@@ -1,6 +1,7 @@
 package misc;
 
 import java.util.ArrayList;
+import java.util.stream.Stream;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -17,65 +18,105 @@ public final class PerceptronTrainer {
         ArrayList<Double> weights = perceptron.getWeights();
 
         int numAttrs = training.numAttributes() - 1;
-
+        int x = 0;
         do {
-            for (Instance train : training) {
-                double y = classifyInstance(train, weights);
+            training.stream().forEach((train) -> {
+                double predictedClass = classifyInstance(train, weights);
 
-                // don't update weights if coprrectly classified as redundant
                 for (int i = 0; i < numAttrs; i++) {
-                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - y) * train.value(i);
+                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - predictedClass) * train.value(i);
 
                     weights.set(i, weights.get(i) + newWeight);
-                    //perceptron.setWeights(weights);
+                }
+            });
+            //break;
+            // do stopping condition
+        } while (x++ < 10);
+    }
+
+    public static void online(AttributeIterator training, IPerceptron perceptron) throws Exception {
+        ArrayList<Double> weights = perceptron.getWeights();
+
+        int numAttrs = training.numAttributes() - 1;
+        int x = 0;
+        do {
+            while (training.hasNext()) {
+                Pair<double[], Double> pair = training.next();
+
+                double predictedClass = classifyInstance(pair.getFirst(), weights);
+
+                for (int i = 0; i < pair.getFirst().length; i++) {
+                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(pair.getLast()) - predictedClass) * pair.getFirst()[i];
+
+                    weights.set(i, weights.get(i) + newWeight);
                 }
             }
-            break;
+
+            //break;
             // do stopping condition
-        } while (true);
+        } while (x++ < 10);
+        
+        perceptron.setIndexes(training.getIndexes());
     }
 
     public static void offline(Instances training, IPerceptron perceptron) throws Exception {
         ArrayList<Double> weights = perceptron.getWeights();
 
         int numAttrs = training.numAttributes() - 1;
-        
+        int x = 0;
         do {
             ArrayList<Double> deltaWeights = new ArrayList<>();
-            
-            for(int i = 0; i < numAttrs; i++) deltaWeights.add(0.0);
-            
-            for(Instance train: training) {
-                double y = classifyInstance(train, weights);
-                
-                for(int i = 0; i < numAttrs; i++) {
-                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - y) * train.value(i);
-                    
+
+            for (int i = 0; i < numAttrs; i++) {
+                deltaWeights.add(0.0);
+            }
+
+            training.stream().map((train) -> {
+                double predictedClass = classifyInstance(train, weights);
+
+                for (int i = 0; i < numAttrs; i++) {
+                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train) - predictedClass) * train.value(i);
+
                     deltaWeights.set(i, deltaWeights.get(i) + newWeight);
                 }
-                
-                for(int i = 0; i < numAttrs; i++) {                    
+                return train;
+            }).forEach((_item) -> {
+                for (int i = 0; i < numAttrs; i++) {
                     weights.set(i, weights.get(i) + deltaWeights.get(i));
                 }
-            }
-            
-            break;
+            });
+
+            //break;
             // do stopping condition
-        } while(true);
+        } while (x++ < 10);
     }
-    
+
     public static double classifyInstance(Instance instnc, ArrayList<Double> weights) {
         double result = 0;
 
         for (int index = instnc.numAttributes() - 2; index >= 0; index--) {
             result += instnc.value(index) * weights.get(index);
         }
-        
+
+        return result >= 0 ? 1 : -1;
+    }
+
+    public static double classifyInstance(double[] instnc, ArrayList<Double> weights) {
+        double result = 0;
+
+        for (int index = 0; index < instnc.length; index++) {
+            result += instnc[index] * weights.get(index);
+        }
+
         return result >= 0 ? 1 : -1;
     }
 
     private static double getClassValue(Instance instance) {
         return instance.classValue() == 1 ? 1 : -1;
+    }
+
+    private static double getClassValue(double value) {
+        return value == 1 ? 1 : -1;
     }
 
 }
