@@ -6,7 +6,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import misc.AttributeIterator;
-import misc.AttributeStandardizer;
 import misc.IPerceptron;
 import weka.classifiers.Classifier;
 import weka.core.Capabilities;
@@ -35,7 +34,11 @@ public class RandomLinearPerceptron implements Classifier {
         for (int index = 0; index < DEFAULT_SIZE; index++) {
             AttributeIterator iterator = new AttributeIterator(i);
 
-            IPerceptron perceptron = new Random(System.currentTimeMillis()).nextInt(2) == 0 ? new LinearPerceptron() : new EnhancedLinearPerceptron();
+            IPerceptron perceptron = new Random(System.currentTimeMillis()).nextInt(2) == 0 ?
+                    new LinearPerceptron() :
+                    new EnhancedLinearPerceptron( // randomly choose whether to standardize attrs
+                            new Random(System.currentTimeMillis()).nextInt(2) == 0
+                    );
 
             perceptron.buildClassifier(iterator);
 

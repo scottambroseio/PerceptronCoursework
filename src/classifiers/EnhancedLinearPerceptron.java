@@ -2,6 +2,7 @@ package classifiers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 import misc.AttributeIterator;
 import misc.AttributeStandardizer;
 import misc.AttributeValidator;
@@ -27,6 +28,7 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     private final AttributeStandardizer standardizer;
     private boolean memberOfEssemble;
     private int[] indexes;
+    private boolean modelSelection;
 
     public EnhancedLinearPerceptron() {
         this.weights = new ArrayList<>();
@@ -35,6 +37,48 @@ public class EnhancedLinearPerceptron implements IPerceptron {
         this.useOffline = true;
         this.standardize = true;
         this.standardizer = new AttributeStandardizer();
+    }
+
+    public EnhancedLinearPerceptron(boolean standardize) {
+        this.weights = new ArrayList<>();
+        this.bias = 1;
+        this.learningRate = 1;
+        this.useOffline = false;
+        this.standardize = standardize;
+        this.standardizer = new AttributeStandardizer();
+    }
+    
+    public EnhancedLinearPerceptron(boolean standardize, boolean modelSelection) {
+        this.weights = new ArrayList<>();
+        this.bias = 1;
+        this.learningRate = 1;
+        this.useOffline = false;
+        this.standardize = standardize;
+        this.standardizer = new AttributeStandardizer();
+        this.modelSelection = modelSelection;
+    }
+    //
+    private void modelSelection(Instances instances) {
+        int folds = new Random(System.currentTimeMillis()).nextInt(10) + 1;
+        
+        Instances randData = new Instances(instances);
+        
+        randData.randomize(new Random(System.currentTimeMillis()));
+        
+        for(int i = 0; i < folds; i++) {
+            Instances train = randData.trainCV(folds, i);
+            Instances test = randData.testCV(folds, i);
+            
+            
+            
+            
+            
+            
+            //training set
+            //test set
+            //get weights for online
+            //get weights for offline
+        }
     }
 
     @Override
@@ -88,8 +132,6 @@ public class EnhancedLinearPerceptron implements IPerceptron {
         if (!this.memberOfEssemble) {
             return PerceptronClassifier.classifyInstance(instnc, weights);
         } else {
-            // select attrs
-
             double[] values = Arrays.stream(this.indexes).mapToDouble((index) -> instnc.value(index)).toArray();
 
             return PerceptronClassifier.classifyInstance(values, weights);
