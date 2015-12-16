@@ -24,7 +24,6 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     private boolean useOffline;
     private final boolean standardize;
     private final AttributeStandardizer standardizer;
-    private boolean modelSelection;
     private int[] indexes;
 
     public EnhancedLinearPerceptron() {

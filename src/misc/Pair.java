@@ -3,8 +3,6 @@ package misc;
 /**
  *
  * @author 6523617
- * @param <A>
- * @param <B>
  */
 public class Pair<A, B> {
 

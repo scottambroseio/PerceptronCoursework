@@ -33,8 +33,6 @@ public class RandomLinearPerceptron implements Classifier {
 
     @Override
     public void buildClassifier(Instances i) throws Exception {
-        boolean useLinear = new Random(System.currentTimeMillis()).nextInt(2) == 0;
-
         for (int index = 0; index < this.size; index++) {
             LinearPerceptron perceptron = new LinearPerceptron();
 
@@ -87,7 +85,7 @@ public class RandomLinearPerceptron implements Classifier {
 
     @Override
     public Capabilities getCapabilities() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

@@ -23,7 +23,6 @@ public class AttributeStandardizer {
             double mean = getMeanForAttribute(attrIndex, instances);
             double sd = getStandardDeviationForAttribute(attrIndex, instances);
 
-            // cache mean and sd
             this.meanAndSd.add(new Pair<>(mean, sd));
 
             for (Instance i : instances) {
