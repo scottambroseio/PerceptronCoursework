@@ -13,13 +13,7 @@ public interface IPerceptron extends Classifier {
 
     public void setBias(double bias);
 
-    public ArrayList<Double> getWeights();
+    public void setIndexes(int[] ints);
 
-    public double getLearningRate();
-
-    public void setLearningRate(double learningRate);
-
-    public void setIndexes(int[] indexes);
-
-    public void buildClassifier(AttributeIterator instances) throws Exception;
+    public void setWeights(ArrayList<Double> weights);
 }

@@ -1,5 +1,6 @@
 package perceptroncoursework;
 
+import classifiers.EnhancedLinearPerceptron;
 import classifiers.LinearPerceptron;
 import classifiers.RandomLinearPerceptron;
 import misc.ArffReader;
@@ -22,17 +23,29 @@ public class PerceptronCoursework {
         Instances training = ArffReader.read(trainingPath);
         Instances testing = ArffReader.read(testingPath);
         
-        LinearPerceptron perceptron = new LinearPerceptron();
+        LinearPerceptron linear = new LinearPerceptron();
+        EnhancedLinearPerceptron enhanced = new EnhancedLinearPerceptron();
         RandomLinearPerceptron random = new RandomLinearPerceptron();
         
-        perceptron.buildClassifier(training);
+        enhanced.modelSelection(training);
+        
+        linear.buildClassifier(training);
+        enhanced.buildClassifier(training);
         random.buildClassifier(training);
         
         int numCorrect = 0;
         int total = testing.size();
         
         for(Instance i: testing) {
-            if (perceptron.classifyInstance(i) == getClassValue(i)) numCorrect++;
+            if (linear.classifyInstance(i) == getClassValue(i)) numCorrect++;
+        }
+        
+        System.out.printf("%d/%d correct\n", numCorrect, total);
+        
+        numCorrect = 0;
+        
+        for(Instance i: testing) {
+            if (enhanced.classifyInstance(i) == getClassValue(i)) numCorrect++;
         }
         
         System.out.printf("%d/%d correct\n", numCorrect, total);

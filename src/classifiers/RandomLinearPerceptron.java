@@ -1,16 +1,15 @@
 package classifiers;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import misc.AttributeIterator;
 import misc.IPerceptron;
 import weka.classifiers.Classifier;
 import weka.core.Capabilities;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Remove;
 
 /**
  *
@@ -20,27 +19,43 @@ public class RandomLinearPerceptron implements Classifier {
 
     private final ArrayList<IPerceptron> essemble;
     private final int DEFAULT_SIZE = 500;
+    private final int size;
 
     public RandomLinearPerceptron() {
         this.essemble = new ArrayList<>(DEFAULT_SIZE);
+        this.size = DEFAULT_SIZE;
     }
 
     public RandomLinearPerceptron(int size) {
         this.essemble = new ArrayList<>(size);
+        this.size = size;
     }
 
     @Override
     public void buildClassifier(Instances i) throws Exception {
-        for (int index = 0; index < DEFAULT_SIZE; index++) {
-            AttributeIterator iterator = new AttributeIterator(i);
+        boolean useLinear = new Random(System.currentTimeMillis()).nextInt(2) == 0;
 
-            IPerceptron perceptron = new Random(System.currentTimeMillis()).nextInt(2) == 0 ?
-                    new LinearPerceptron() :
-                    new EnhancedLinearPerceptron( // randomly choose whether to standardize attrs
-                            new Random(System.currentTimeMillis()).nextInt(2) == 0
-                    );
+        for (int index = 0; index < this.size; index++) {
+            LinearPerceptron perceptron = new LinearPerceptron();
 
-            perceptron.buildClassifier(iterator);
+            int numToSelect = (int) Math.round(Math.sqrt((double) i.numAttributes()));
+            int[] ints = new Random().ints(0, i.numAttributes() - 2).distinct().limit(numToSelect).toArray();
+
+            ints = Arrays.copyOf(ints, ints.length + 1);
+            ints[ints.length - 1] = i.numAttributes() - 1;
+
+            Remove remove = new Remove();
+            remove.setAttributeIndicesArray(ints);
+            remove.setInvertSelection(true);
+            remove.setInputFormat(i);
+
+            Instances cloned = Filter.useFilter(i, remove);
+
+            cloned.setClassIndex(cloned.numAttributes() - 1);
+
+            perceptron.buildClassifier(cloned);
+
+            perceptron.setIndexes(ints);
 
             this.essemble.add(index, perceptron);
         }
@@ -50,28 +65,24 @@ public class RandomLinearPerceptron implements Classifier {
     public double classifyInstance(Instance instnc) throws Exception {
         double[] dist = this.distributionForInstance(instnc);
 
-        ArrayList<Double> list = new ArrayList<>();
-
-        for (double num : dist) {
-            list.add(num);
-        }
-
-        int x = Collections.frequency(list, -1.0);
-        int y = Collections.frequency(list, 1.0);
-
-        return x > y ? -1 : x < y ? 1 : (double) (new Random(System.currentTimeMillis()).nextInt(2) + 1);
+        return dist[0] > dist[1] ? -1 : dist[1] < dist[0] ? 1 : (double) (new Random(System.currentTimeMillis()).nextInt(2) + 1) == 0 ? -1 : 1;
     }
 
     @Override
     public double[] distributionForInstance(Instance instnc) throws Exception {
-        return this.essemble.stream().mapToDouble((perceptron) -> {
-            try {
-                return perceptron.classifyInstance(instnc);
-            } catch (Exception ex) {
-                Logger.getLogger(RandomLinearPerceptron.class.getName()).log(Level.SEVERE, null, ex);
-                return 0;
+        double[] counted = {0, 0};
+
+        for (IPerceptron perceptron : this.essemble) {
+            double cls = perceptron.classifyInstance(instnc);
+
+            if (cls == -1) {
+                counted[0]++;
+            } else {
+                counted[1]++;
             }
-        }).toArray();
+        }
+
+        return counted;
     }
 
     @Override

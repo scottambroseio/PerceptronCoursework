@@ -3,7 +3,6 @@ package classifiers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-import misc.AttributeIterator;
 import misc.AttributeStandardizer;
 import misc.AttributeValidator;
 import misc.IPerceptron;
@@ -21,19 +20,16 @@ import weka.core.Instances;
 public class EnhancedLinearPerceptron implements IPerceptron {
 
     private double bias;
-    private double learningRate;
-    private final ArrayList<Double> weights;
-    private final boolean useOffline;
+    private ArrayList<Double> weights;
+    private boolean useOffline;
     private final boolean standardize;
     private final AttributeStandardizer standardizer;
-    private boolean memberOfEssemble;
-    private int[] indexes;
     private boolean modelSelection;
+    private int[] indexes;
 
     public EnhancedLinearPerceptron() {
         this.weights = new ArrayList<>();
         this.bias = 1;
-        this.learningRate = 1;
         this.useOffline = true;
         this.standardize = true;
         this.standardizer = new AttributeStandardizer();
@@ -42,74 +38,69 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     public EnhancedLinearPerceptron(boolean standardize) {
         this.weights = new ArrayList<>();
         this.bias = 1;
-        this.learningRate = 1;
-        this.useOffline = false;
+        this.useOffline = true;
         this.standardize = standardize;
         this.standardizer = new AttributeStandardizer();
     }
-    
-    public EnhancedLinearPerceptron(boolean standardize, boolean modelSelection) {
+
+    public EnhancedLinearPerceptron(boolean standardize, boolean useOffline) {
         this.weights = new ArrayList<>();
         this.bias = 1;
-        this.learningRate = 1;
-        this.useOffline = false;
+        this.useOffline = useOffline;
         this.standardize = standardize;
         this.standardizer = new AttributeStandardizer();
-        this.modelSelection = modelSelection;
     }
-    //
-    private void modelSelection(Instances instances) {
-        int folds = new Random(System.currentTimeMillis()).nextInt(10) + 1;
-        
+
+    public void modelSelection(Instances instances) throws Exception {
+        int folds = new Random(System.currentTimeMillis()).nextInt(9) + 2;
+
         Instances randData = new Instances(instances);
-        
+
         randData.randomize(new Random(System.currentTimeMillis()));
-        
-        for(int i = 0; i < folds; i++) {
+
+        double generalError = 0;
+
+        for (int i = 0; i < folds; i++) {
+            int onlineError = 0;
+            int offlineError = 0;
+
             Instances train = randData.trainCV(folds, i);
             Instances test = randData.testCV(folds, i);
-            
-            
-            
-            
-            
-            
-            //training set
-            //test set
-            //get weights for online
-            //get weights for offline
+
+            PerceptronTrainer.online(train, this);
+
+            onlineError = test.stream()
+                    .filter((instnc) -> (PerceptronClassifier.classifyInstance(instnc, weights) != getClassValue(instnc.classValue())))
+                    .map((_item) -> 1)
+                    .reduce(onlineError, Integer::sum);
+
+            PerceptronTrainer.offline(train, this);
+
+            offlineError = test.stream()
+                    .filter((instnc) -> (PerceptronClassifier.classifyInstance(instnc, weights) != getClassValue(instnc.classValue())))
+                    .map((_item) -> 1)
+                    .reduce(offlineError, Integer::sum);
+
+            generalError += onlineError - offlineError;
         }
+
+        generalError *= (1.0 / (double) folds);
+
+        if (generalError < 0) {
+            this.useOffline = false;
+        } else if (generalError > 0) {
+            this.useOffline = true;
+        }
+    }
+
+    private static double getClassValue(double value) {
+        return value == 1 ? 1 : -1;
     }
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
-        this.memberOfEssemble = false;
-
         if (!AttributeValidator.validateAttributes(instances)) {
             throw new InvalidAttributesException();
-        }
-
-        for (int count = instances.numAttributes() - 1; count > 0; count--) {
-            weights.add(1.0);
-        }
-
-        if (this.standardize) {
-            standardizer.standardize(instances);
-        }
-
-        if (this.useOffline) {
-            PerceptronTrainer.offline(instances, this);
-        } else {
-            PerceptronTrainer.online(instances, this);
-        }
-    }
-
-    @Override
-    public void buildClassifier(AttributeIterator instances) throws Exception {
-        this.memberOfEssemble = true;
-
-        for (int count = instances.numAttributes(); count > 0; count--) {
-            weights.add(1.0);
         }
 
         if (this.standardize) {
@@ -129,13 +120,11 @@ public class EnhancedLinearPerceptron implements IPerceptron {
             this.standardizer.standardize(instnc);
         }
 
-        if (!this.memberOfEssemble) {
+        if (this.indexes == null) {
             return PerceptronClassifier.classifyInstance(instnc, weights);
-        } else {
-            double[] values = Arrays.stream(this.indexes).mapToDouble((index) -> instnc.value(index)).toArray();
-
-            return PerceptronClassifier.classifyInstance(values, weights);
         }
+
+        return PerceptronClassifier.classifyInstance(instnc, Arrays.copyOf(indexes, indexes.length - 1), weights);
     }
 
     @Override
@@ -149,11 +138,6 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     }
 
     @Override
-    public ArrayList<Double> getWeights() {
-        return weights;
-    }
-
-    @Override
     public double getBias() {
         return bias;
     }
@@ -164,17 +148,14 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     }
 
     @Override
-    public double getLearningRate() {
-        return learningRate;
+    public void setWeights(ArrayList<Double> weights) {
+        this.weights = weights;
     }
 
     @Override
-    public void setLearningRate(double learningRate) {
-        this.learningRate = learningRate;
-    }
-
-    @Override
-    public void setIndexes(int[] indexes) {
-        this.indexes = indexes;
+    public void setIndexes(int[] ints) {
+        Arrays.sort(ints);
+        
+        this.indexes = ints;
     }
 }

@@ -19,11 +19,11 @@ public final class PerceptronClassifier {
         return result >= 0 ? 1 : -1;
     }
 
-    public static double classifyInstance(double[] instance, ArrayList<Double> weights) {
+    public static double classifyInstance(Instance instance, int[] indexes, ArrayList<Double> weights) {
         double result = 0;
 
-        for (int index = instance.length - 1; index >= 0; index--) {
-            result += instance[index] * weights.get(index);
+        for (int index = 0; index < indexes.length; index++) {
+            result += instance.value(indexes[index]) * weights.get(index);
         }
 
         return result >= 0 ? 1 : -1;
