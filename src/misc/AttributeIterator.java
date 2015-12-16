@@ -35,14 +35,12 @@ public class AttributeIterator implements Iterator<Pair<double[], Double>>, Supp
         return this.indexes;
     }
 
-    private int[] generateIndexes() {
+    private void generateIndexes() {
         int totalAttrs = this.instances.numAttributes();
 
         do {
             this.indexes = random.ints((int) Math.round((int) Math.sqrt((double) totalAttrs)), 0, totalAttrs - 1).toArray();
         } while (indexValuesAreNotUnqiue());
-
-        return indexes;
     }
 
     private boolean indexValuesAreNotUnqiue() {
@@ -85,6 +83,10 @@ public class AttributeIterator implements Iterator<Pair<double[], Double>>, Supp
     public int numAttributes() {
         return this.indexes.length;
     }
+    
+    public int numInstances() {
+        return this.instances.size();
+    }
 
     private static double getClassValue(Instance instance) {
         return instance.classValue() == 1 ? 1 : -1;
@@ -95,6 +97,10 @@ public class AttributeIterator implements Iterator<Pair<double[], Double>>, Supp
         if (this.hasNext()) return this.next();
         
         return null;
+    }
+    
+    public void reset() {
+        this.currentIndex = 0;
     }
 
 }

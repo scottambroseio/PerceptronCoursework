@@ -2,9 +2,7 @@ package perceptroncoursework;
 
 import classifiers.LinearPerceptron;
 import classifiers.RandomLinearPerceptron;
-import java.util.Arrays;
 import misc.ArffReader;
-import misc.AttributeIterator;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -19,30 +17,29 @@ public class PerceptronCoursework {
      * @throws java.lang.Exception
      */
     public static void main(String[] args) throws Exception {
-        String path = "../Datasets/cancer/cancer.arff";
-        Instances training = ArffReader.read(path);
+        String trainingPath = "../Datasets/adult/adult_train.arff";
+        String testingPath = "../Datasets/adult/adult_test.arff";
+        Instances training = ArffReader.read(trainingPath);
+        Instances testing = ArffReader.read(testingPath);
         
-        AttributeIterator a1 = new AttributeIterator(training);
-        AttributeIterator a2 = new AttributeIterator(training);
-
-        LinearPerceptron perceptron3 = new LinearPerceptron();
+        LinearPerceptron perceptron = new LinearPerceptron();
         RandomLinearPerceptron random = new RandomLinearPerceptron();
         
-        perceptron3.buildClassifier(training);
+        perceptron.buildClassifier(training);
         random.buildClassifier(training);
         
         int numCorrect = 0;
-        int total = training.size();
+        int total = testing.size();
         
-        for(Instance i: training) {
-            if (perceptron3.classifyInstance(i) == getClassValue(i)) numCorrect++;
+        for(Instance i: testing) {
+            if (perceptron.classifyInstance(i) == getClassValue(i)) numCorrect++;
         }
         
         System.out.printf("%d/%d correct\n", numCorrect, total);
         
         numCorrect = 0;
         
-        for(Instance i: training) {
+        for(Instance i: testing) {
             if (random.classifyInstance(i) == getClassValue(i)) numCorrect++;
         }
         

@@ -39,10 +39,32 @@ public class AttributeStandardizer {
         }
     }
 
-    public void standardize(Instance instance) {
-        int numAttrs = instance.numAttributes() - 2;
+    public void standardize(AttributeIterator instances) {
+        int numAttrs = instances.numAttributes();
 
-        for (int attrIndex = 0; attrIndex <= numAttrs; attrIndex++) {
+        for (int attrIndex = 0; attrIndex < numAttrs; attrIndex++) {
+            double mean = getMeanForAttribute(attrIndex, instances);
+            double sd = getStandardDeviationForAttribute(attrIndex, instances);
+
+            // cache mean and sd
+            this.meanAndSd.add(new Pair<>(mean, sd));
+            
+            while(instances.hasNext()) {
+                Pair<double[], Double> pair = instances.next();
+                
+                double score = standardScore(pair.getFirst()[attrIndex], mean, sd);
+                
+                pair.getFirst()[attrIndex] = score;
+            }
+            
+            instances.reset();
+        }
+    }
+
+    public void standardize(Instance instance) {
+        int numAttrs = this.meanAndSd.size();
+
+        for (int attrIndex = 0; attrIndex < numAttrs; attrIndex++) {
             Pair<Double, Double> element = this.meanAndSd.get(attrIndex);
 
             double mean = element.getFirst();
@@ -62,12 +84,41 @@ public class AttributeStandardizer {
         return mean /= instances.numInstances();
     }
 
+    private double getMeanForAttribute(int index, AttributeIterator instances) {
+        double mean = 0;
+
+        while (instances.hasNext()) {
+            Pair<double[], Double> pair = instances.next();
+
+            mean += pair.getFirst()[index];
+        }
+
+        instances.reset();
+
+        return mean /= instances.numInstances();
+    }
+
     private double getStandardDeviationForAttribute(int index, Instances instances) {
         double mean = this.getMeanForAttribute(index, instances);
         double sd = 0;
 
         sd = instances.stream().map((i) -> Math.pow(i.value(index) - mean, 2)).reduce(sd, (accumulator, _item) -> accumulator + _item);
 
+        return sd /= instances.numInstances();
+    }
+
+    private double getStandardDeviationForAttribute(int index, AttributeIterator instances) {
+        double mean = this.getMeanForAttribute(index, instances);
+        double sd = 0;
+        
+        while(instances.hasNext()) {
+            Pair<double[], Double> pair = instances.next();
+            
+            sd += Math.pow(pair.getFirst()[index] - mean, 2);
+        }
+        
+        instances.reset();
+        
         return sd /= instances.numInstances();
     }
 

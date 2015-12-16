@@ -1,7 +1,6 @@
 package misc;
 
 import java.util.ArrayList;
-import java.util.stream.Stream;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -29,8 +28,6 @@ public final class PerceptronTrainer {
                     weights.set(i, weights.get(i) + newWeight);
                 }
             });
-            //break;
-            // do stopping condition
         } while (x++ < 10);
     }
 
@@ -51,11 +48,8 @@ public final class PerceptronTrainer {
                     weights.set(i, weights.get(i) + newWeight);
                 }
             }
-
-            //break;
-            // do stopping condition
         } while (x++ < 10);
-        
+
         perceptron.setIndexes(training.getIndexes());
     }
 
@@ -80,15 +74,44 @@ public final class PerceptronTrainer {
                     deltaWeights.set(i, deltaWeights.get(i) + newWeight);
                 }
                 return train;
-            }).forEach((_item) -> {
-                for (int i = 0; i < numAttrs; i++) {
-                    weights.set(i, weights.get(i) + deltaWeights.get(i));
-                }
             });
 
-            //break;
-            // do stopping condition
+            for (int i = 0; i < numAttrs; i++) {
+                weights.set(i, weights.get(i) + deltaWeights.get(i));
+            }
         } while (x++ < 10);
+    }
+
+    public static void offline(AttributeIterator training, IPerceptron perceptron) throws Exception {
+        ArrayList<Double> weights = perceptron.getWeights();
+
+        int numAttrs = training.numAttributes() - 1;
+        int x = 0;
+        do {
+            ArrayList<Double> deltaWeights = new ArrayList<>();
+
+            for (int i = 0; i < numAttrs; i++) {
+                deltaWeights.add(0.0);
+            }
+
+            while (training.hasNext()) {
+                Pair<double[], Double> train = training.next();
+
+                double predictedClass = classifyInstance(train, weights);
+
+                for (int i = 0; i < numAttrs; i++) {
+                    double newWeight = perceptron.getBias() * perceptron.getLearningRate() * (getClassValue(train.getLast()) - predictedClass) * train.getFirst()[i];
+
+                    deltaWeights.set(i, deltaWeights.get(i) + newWeight);
+                }
+            }
+
+            for (int i = 0; i < numAttrs; i++) {
+                weights.set(i, weights.get(i) + deltaWeights.get(i));
+            }
+        } while (x++ < 10);
+        
+        perceptron.setIndexes(training.getIndexes());
     }
 
     public static double classifyInstance(Instance instnc, ArrayList<Double> weights) {
@@ -96,6 +119,16 @@ public final class PerceptronTrainer {
 
         for (int index = instnc.numAttributes() - 2; index >= 0; index--) {
             result += instnc.value(index) * weights.get(index);
+        }
+
+        return result >= 0 ? 1 : -1;
+    }
+
+    public static double classifyInstance(Pair<double[], Double> train, ArrayList<Double> weights) {
+        double result = 0;
+
+        for (int index = 0; index < train.getFirst().length; index++) {
+            result += train.getLast() * weights.get(index);
         }
 
         return result >= 0 ? 1 : -1;

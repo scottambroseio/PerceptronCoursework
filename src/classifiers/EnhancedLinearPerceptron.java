@@ -1,6 +1,8 @@
 package classifiers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import misc.AttributeIterator;
 import misc.AttributeStandardizer;
 import misc.AttributeValidator;
 import misc.IPerceptron;
@@ -23,6 +25,8 @@ public class EnhancedLinearPerceptron implements IPerceptron {
     private final boolean useOffline;
     private final boolean standardize;
     private final AttributeStandardizer standardizer;
+    private boolean memberOfEssemble;
+    private int[] indexes;
 
     public EnhancedLinearPerceptron() {
         this.weights = new ArrayList<>();
@@ -35,12 +39,32 @@ public class EnhancedLinearPerceptron implements IPerceptron {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
+        this.memberOfEssemble = false;
+
         if (!AttributeValidator.validateAttributes(instances)) {
             throw new InvalidAttributesException();
         }
 
-        // initialize default weights
         for (int count = instances.numAttributes() - 1; count > 0; count--) {
+            weights.add(1.0);
+        }
+
+        if (this.standardize) {
+            standardizer.standardize(instances);
+        }
+
+        if (this.useOffline) {
+            PerceptronTrainer.offline(instances, this);
+        } else {
+            PerceptronTrainer.online(instances, this);
+        }
+    }
+
+    @Override
+    public void buildClassifier(AttributeIterator instances) throws Exception {
+        this.memberOfEssemble = true;
+
+        for (int count = instances.numAttributes(); count > 0; count--) {
             weights.add(1.0);
         }
 
@@ -61,7 +85,15 @@ public class EnhancedLinearPerceptron implements IPerceptron {
             this.standardizer.standardize(instnc);
         }
 
-        return PerceptronClassifier.classifyInstance(instnc, weights);
+        if (!this.memberOfEssemble) {
+            return PerceptronClassifier.classifyInstance(instnc, weights);
+        } else {
+            // select attrs
+
+            double[] values = Arrays.stream(this.indexes).mapToDouble((index) -> instnc.value(index)).toArray();
+
+            return PerceptronClassifier.classifyInstance(values, weights);
+        }
     }
 
     @Override
@@ -101,6 +133,6 @@ public class EnhancedLinearPerceptron implements IPerceptron {
 
     @Override
     public void setIndexes(int[] indexes) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.indexes = indexes;
     }
 }

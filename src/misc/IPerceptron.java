@@ -23,6 +23,8 @@ public interface IPerceptron extends Classifier {
     public double getLearningRate();
 
     public void setLearningRate(double learningRate);
-    
+
     public void setIndexes(int[] indexes);
+
+    public void buildClassifier(AttributeIterator instances) throws Exception;
 }

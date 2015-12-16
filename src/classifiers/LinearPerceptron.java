@@ -28,7 +28,6 @@ public class LinearPerceptron implements IPerceptron {
         this.weights = new ArrayList<>();
         this.bias = 1;
         this.learningRate = 1;
-
     }
 
     @Override
@@ -46,6 +45,7 @@ public class LinearPerceptron implements IPerceptron {
         PerceptronTrainer.online(instances, this);
     }
     
+    @Override
     public void buildClassifier(AttributeIterator instances) throws Exception {
         this.memberOfEssemble = true;
         
